@@ -1,0 +1,58 @@
+<!doctype html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Overlay</title>
+	<meta name="description" content="">
+	<link rel="preconnect" href="https://fonts.gstatic.com">
+	<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap"
+		rel="stylesheet">
+	<style>
+		body {
+			font-family: 'Arial', cursive;
+			font-size: 64px;
+		}
+	</style>
+</head>
+
+<body>
+	<!-- This spinner is a hack to force OBS to always render the page while videos are playing -->
+	<div class="browser-source-force-render-spinner"></div>
+	<div class="wrapper" id="wrapper"></div>
+</body>
+
+<script>
+	const body = document.querySelector("body");
+	const div = document.getElementById("wrapper");
+	function getOption(optionName) {
+		let url = new URL(document.URL);
+		let optionValue = getComputedStyle(body).getPropertyValue("--firebotcustomevent-" + optionName)
+		if (optionValue == "")
+			optionValue = url.searchParams.get(optionName);
+		if (!optionValue)
+			optionValue = "";
+		return optionValue.replaceAll(" ", "");;
+	}
+
+	setTimeout(start, 500);
+
+	function start() {
+		const type = getOption("type");
+
+		exampleSocket = new WebSocket("ws://localhost:7472/socketserver");
+
+		exampleSocket.onmessage = (event) => {
+
+			let data = JSON.parse(event.data)
+			if (data.event == "customEvent") {
+				if (data.meta.type == type) {
+					console.log(data);
+					div.innerHTML = data.meta.data;
+					localStorage.setItem(type, data.meta.data);
+				}
+			}
+		}
+		div.innerHTML = localStorage.getItem(type);
+	}
+</script>
+</html>
